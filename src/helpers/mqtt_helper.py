@@ -9,23 +9,25 @@ def on_connect(client, userdata, flags, rc):
 
     # Subscribing to all the topics in on_connect in order
     # to resubscribe if the connection is lost
-    client.subscribe("test")
+    client.subscribe([("test", 0)])
 
 # The callback used for interpreting received messages
 def on_message(client, userdata, msg):
     print("Recevied message: topic:" + msg.topic + " - payload:" + str(msg.payload)[1:])
 
 # Creating the client
-client = mqtt.Client()
+client = mqtt.Client("server", False)
 
 # Assigning the callbacks
 client.on_connect = on_connect
 client.on_message = on_message
 
 # Parsing connection and authentication details from json
-with open('helpers/mqtt_creds.json', 'r') as f:
+with open('helpers/mqtt.secret.json', 'r') as f:
     creds = json.loads(f.read())
 
 # Setting up the credentials and connecting
 client.username_pw_set(creds["username"], creds["password"])
 client.connect(creds["host"], creds["port"], 60)
+
+client.publish("test", "published message")
