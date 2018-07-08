@@ -27,5 +27,6 @@ def sendNotification(id, title, body, singleDevice = True):
     print("[FIREBASE]--Sent notification to multiple devices:" + result)
     return
 
+# Clean registration ids
 def cleanRegistrationIds(ids):
     return messageService.clean_registration_ids(ids)

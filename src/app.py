@@ -1,12 +1,12 @@
 from flask import Flask
 from flask import request
 # from flask import render_template
-import helpers.firebase_helper as fcm
+import helpers.firebase_helper as firebase
 import helpers.mqtt_helper as mqtt
 import helpers.secret_parser as secret
 from threading import Thread
 from time import sleep
-import sys
+# import sys
 
 # --Flask routing--
 app = Flask(__name__)
