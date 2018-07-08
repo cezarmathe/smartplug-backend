@@ -1,1 +1,5 @@
   This folder is used for storing secret values for the server.
+
+  firebase.secret.json
+  flask.secret.json
+  mqtt.secret.json
