@@ -1,13 +1,35 @@
 import paho.mqtt.client as mqtt
-import helpers.secret_parser as secret
+
+# A buffer class for keeping incoming messages
+class MessageBuffer():
+    def __init__(self):
+        self.lastItem = -1
+        self.bufferTopic = list()
+        self.bufferPayload = list()
+    def addMessage(self, topic, payload):
+        # print("add message")
+        self.bufferTopic.append(topic)
+        self.bufferPayload.append(payload)
+        self.lastItem += 1
+    def getMessage(self):
+        if self.lastItem == -1:
+            # print("-1")
+            return -1
+        message = {
+            "topic" : self.bufferTopic[0],
+            "payload" : self.bufferPayload[0]
+        }
+        del self.bufferTopic[0]
+        del self.bufferPayload[0]
+        self.lastItem -= 1
+        # print("1")
+        return message
+
+# Creating the buffer
+messageBuffer = MessageBuffer()
 
 # All the topics that the client will subscribe to
 topics = ["test", "conn_status", "status_updates"]
-
-# The MQTT message buffer
-# global bufferStatusTopic
-# global bufferStatusPayload
-# global lastItem
 
 # Creating the client
 client = mqtt.Client("server", False)
@@ -32,25 +54,20 @@ def onMessage(client, userdata, msg):
     topic = str(msg.topic)
     payload = str(msg.payload)
     payload = payload[2 : len(payload) - 1]
-    # updateBuffer(topic, payload)
+    messageBuffer.addMessage(topic, payload)
 
     print("[MQTT]--Recevied message:" + topic + " - payload:" + payload)
     return
 
 # Initialize MQTT
-def init():
-    # lastItem = -1
-    # bufferStatusTopic = list()
-    # bufferStatusPayload = list()
+def init(host, port, username, password):
     # Assigning the callbacks
     client.on_connect = onConnect
     client.on_message = onMessage
-    # Parsing connection and authentication details from json
-    creds = secret.retrieve('mqtt')
     # Setting up the credentials
-    client.username_pw_set(creds["username"], creds["password"])
+    client.username_pw_set(username, password)
     # Connecting
-    client.connect(creds["host"], creds["port"], 60)
+    client.connect(host, port, 60)
 
     print("[MQTT]--Initialized")
     return
@@ -59,27 +76,10 @@ def init():
 def publish(topic, payload):
     client.publish(topic, payload)
 
-    print("[MQTT]Published a message to the topic(" + topic + ") with the payload(" + topic + ")")
+    print("[MQTT]--Published a message to the topic(\"" + topic + "\") with the payload(\"" + payload + "\")")
     return
 
-# def updateBuffer(topic, payload):
-#     # Updating the buffer
-#     lastItem += 1
-#     bufferStatusTopic.append(topic)
-#     bufferStatusPayload.append(payload)
-
-# Retrieve a message from the bufferStatus
-# def getMessage():
-#     # Checking the bufferStatus
-#     # If the bufferStatus is empty, returns 0
-#     if lastItem == -1:
-#         return lastItem
-#     # Otherwise, creating a message as a dictionary
-#     message = {"topic" : bufferStatusTopic[0],
-#                "payload" : bufferStatusPayload[0]
-#     }
-#     # Then, we delete the message from the bufferStatus
-#     del bufferStatusTopic[0]
-#     del bufferStatusPayload[0]
-#     lastItem -= 1
-#     return message
+# Retrieve a message from the buffer
+def getMessage():
+    # print("get message")
+    return messageBuffer.getMessage()
