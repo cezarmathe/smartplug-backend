@@ -13,19 +13,61 @@ app = Flask(__name__)
 
 @app.route('/upstream', methods=['POST'])
 def handleUpstream():
-    # type = request.form['type']
-    # if type == 'registration_id':
-    #     return ''
-    # if type == 'status_change':
-    #     mqtt.publish("status", request.form['status'])
-    #     return 'received status:' + request.form['status']
-    # return 'unknown type'
-    mqtt.publish("status", request.form['status'])
-    return 'received status update'
+    type = request.form['type']
+    print("[FLASK]--Received POST request on /upstream : type " + type)
+
+    # Store a new device registration id or check if it is registered
+    if type == 'registration-id':
+        return {
+            "request-response" : ""
+        }
+
+    # Make a device update:
+    #     -register and configure a new device
+    #     -update a device's settings
+    #     -delete a device from an account
+    if type == 'device-update':
+        operation = request.form['operation']
+
+        if operation == 'add-new-device':
+            return {
+                "response" : ""
+            }
+
+        else if operation == 'update-status':
+            mqtt.publish("status", request.form['status'])
+            return {
+                "response" : "updated-status"
+            }
+
+        else if operation == 'delete-device':
+            return {
+                "response" : ""
+            }
+
+        else
+            return {
+                "response" : "unknown-operation"
+            }
+
+    # Handle the request of:
+    #     -device list
+    #     -device status(online/offline, on/off)
+    #     -preferences?
+    # Data is sent back as a Firebase data message
+    if type == 'data-request':
+        return {
+            "response" : ""
+        }
+
+    return {
+        "response" : "unknown-request"
+    }
 # ------
 
 # --Separate thread functions
 def runFlask():
+    print("[FLASK]--Thread started")
     flaskSecret = secret.retrieve('flask')
     app.run(host=flaskSecret["host"], port=flaskSecret["port"])
 
