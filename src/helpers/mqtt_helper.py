@@ -4,8 +4,8 @@ import paho.mqtt.client as mqtt
 class MessageBuffer():
     def __init__(self):
         self.lastItem = -1
-        self.bufferTopic = list()
-        self.bufferPayload = list()
+        self.bufferTopic = []
+        self.bufferPayload = []
     def addMessage(self, topic, payload):
         # print("add message")
         self.bufferTopic.append(topic)

@@ -34,18 +34,18 @@ def handleUpstream():
                 "response" : ""
             }
 
-        else if operation == 'update-status':
+        elif operation == 'update-status':
             mqtt.publish("status", request.form['status'])
             return {
                 "response" : "updated-status"
             }
 
-        else if operation == 'delete-device':
+        elif operation == 'delete-device':
             return {
                 "response" : ""
             }
 
-        else
+        else:
             return {
                 "response" : "unknown-operation"
             }
