@@ -1,68 +1,78 @@
 from flask import Flask
 from flask import request
 # from flask import render_template
-import helpers.firebase_helper as firebase
+
 import helpers.mqtt_helper as mqtt
 import helpers.secret_parser as secret
+
 from threading import Thread
 from time import sleep
 # import sys
 
+from logzero import logger
+
 # --Flask routing--
 app = Flask(__name__)
 
-@app.route('/upstream', methods=['POST'])
+@app.route('/device', methods=['POST'])
 def handleUpstream():
-    type = request.form['type']
-    print("[FLASK]--Received POST request on /upstream : type " + type)
+    # type = request.form['type']
+    # print("[FLASK]--Received POST request on /upstream : type " + type)
+
+    print(request.json)
+
+    if request.json['type'] == 'DEVICE_LIST_REQUEST':
+        return '[{\'id\' : 0, \'name\' : \'my dude\', \'status\' : False, \'isOnline\' : True}]'
+
+    return "nyez"
 
     # Store a new device registration id or check if it is registered
-    if type == 'registration-id':
-        return {
-            "request-response" : ""
-        }
+    # if type == 'registration-id':
+    #     return {
+    #         "request-response" : ""
+    #     }
 
     # Make a device update:
     #     -register and configure a new device
     #     -update a device's settings
     #     -delete a device from an account
-    if type == 'device-update':
-        operation = request.form['operation']
-
-        if operation == 'add-new-device':
-            return {
-                "response" : ""
-            }
-
-        elif operation == 'update-status':
-            mqtt.publish("status", request.form['status'])
-            return {
-                "response" : "updated-status"
-            }
-
-        elif operation == 'delete-device':
-            return {
-                "response" : ""
-            }
-
-        else:
-            return {
-                "response" : "unknown-operation"
-            }
+    # if type == 'device-update':
+    #     operation = request.form['operation']
+    #
+    #     if operation == 'add-new-device':
+    #         return {
+    #             "response" : ""
+    #         }
+    #
+    #     elif operation == 'update-status':
+    #         mqtt.publish("status", request.form['status'])
+    #         return {
+    #             "response" : "updated-status"
+    #         }
+    #
+    #     elif operation == 'delete-device':
+    #         return {
+    #             "response" : ""
+    #         }
+    #
+    #     else:
+    #         return {
+    #             "response" : "unknown-operation"
+    #         }
 
     # Handle the request of:
     #     -device list
     #     -device status(online/offline, on/off)
     #     -preferences?
     # Data is sent back as a Firebase data message
-    if type == 'data-request':
-        return {
-            "response" : ""
-        }
-
-    return {
-        "response" : "unknown-request"
-    }
+    # if type == 'data-request':
+    #     return {
+    #         "response" : ""
+    #     }
+    #
+    # return {
+    #     "response" : "unknown-request"
+    # }
 # ------
 
 # --Separate thread functions
