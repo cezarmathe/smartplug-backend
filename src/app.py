@@ -4,75 +4,65 @@ from flask import request
 
 import helpers.mqtt_helper as mqtt
 import helpers.secret_parser as secret
+import helpers.types as types
 
 from threading import Thread
 from time import sleep
 # import sys
+
+import json
 
 from logzero import logger
 
 # --Flask routing--
 app = Flask(__name__)
 
+device_list = {'list' : []}
+
 @app.route('/device', methods=['POST'])
 def handleUpstream():
-    # type = request.form['type']
-    # print("[FLASK]--Received POST request on /upstream : type " + type)
 
     print(request.json)
 
     if request.json['type'] == 'DEVICE_LIST_REQUEST':
-        return '[{\'id\' : 0, \'name\' : \'my dude\', \'status\' : False, \'isOnline\' : True}]'
 
-    return "nyez"
+        global device_list
 
-    # Store a new device registration id or check if it is registered
-    # if type == 'registration-id':
-    #     return {
-    #         "request-response" : ""
-    #     }
+        return json.dumps(device_list.get('list'))
 
-    # Make a device update:
-    #     -register and configure a new device
-    #     -update a device's settings
-    #     -delete a device from an account
-    # if type == 'device-update':
-    #     operation = request.form['operation']
-    #
-    #     if operation == 'add-new-device':
-    #         return {
-    #             "response" : ""
-    #         }
-    #
-    #     elif operation == 'update-status':
-    #         mqtt.publish("status", request.form['status'])
-    #         return {
-    #             "response" : "updated-status"
-    #         }
-    #
-    #     elif operation == 'delete-device':
-    #         return {
-    #             "response" : ""
-    #         }
-    #
-    #     else:
-    #         return {
-    #             "response" : "unknown-operation"
-    #         }
 
-    # Handle the request of:
-    #     -device list
-    #     -device status(online/offline, on/off)
-    #     -preferences?
-    # Data is sent back as a Firebase data message
-    # if type == 'data-request':
-    #     return {
-    #         "response" : ""
-    #     }
-    #
-    # return {
-    #     "response" : "unknown-request"
-    # }
+    if request.json['type'] == 'DEVICE_NEW':
+
+        device_data = request.json['data']
+
+        dl = device_list['list']
+
+        dl.append(device_data)
+
+        device_list['list'] = dl
+
+        print(device_list)
+
+        return "updated device list"
+
+    if request.json['type'] == 'DEVICE_STATUS_UPDATE':
+
+        dv = request.json['data']
+
+        dl = device_list['list']
+
+        for device in dl:
+
+            if (device['id'] == dv['id']):
+
+                device['status'] = dv['status']
+
+                device_list[0] = device
+
+                mqtt.publish("ID" + str(device['id']), str(device['status']))
+
+        return "status update succesful"
+
 # ------
 
 # --Separate thread functions
@@ -103,14 +93,7 @@ def main():
     mqttThread.start()
     msgHandlerThread = Thread(target = runMessageHandler)
     msgHandlerThread.start()
-    # flaskThread = Thread(target = runFlask)
-    # flaskThread.start()
-    #
-    # while True:
-    #     x = input()
-    #     if x == "exit":
-    #         print("stopping the server")
-    #         sys.exit()
+
     runFlask()
 
 if (__name__ == "__main__"):
