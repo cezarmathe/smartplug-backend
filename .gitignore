@@ -107,5 +107,6 @@ venv.bak/
 # secret files
 *.secret.json
 
-# output files
-output.txt
+# log files
+
+src/logs

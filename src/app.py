@@ -1,10 +1,9 @@
 from flask import Flask
-from flask import request
+from flask import request, abort
 # from flask import render_template
 
 import helpers.mqtt_helper as mqtt
 import helpers.secret_parser as secret
-import helpers.types as types
 
 from threading import Thread
 from time import sleep
@@ -12,58 +11,67 @@ from time import sleep
 
 import json
 
+import logzero
 from logzero import logger
 
-# --Flask routing--
+# --end imports
+
+
+# --variables
+
 app = Flask(__name__)
 
-device_list = {'list' : []}
-
-@app.route('/device', methods=['POST'])
-def handleUpstream():
-
-    print(request.json)
-
-    if request.json['type'] == 'DEVICE_LIST_REQUEST':
-
-        global device_list
-
-        return json.dumps(device_list.get('list'))
+# --end variables
 
 
-    if request.json['type'] == 'DEVICE_NEW':
+# --Flask routing------------------------------------------------
 
-        device_data = request.json['data']
+# LOGIN
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json(silent=True)
+    if data == None:
+        abort(400)
+    username = data['username']
+    pass
+    return
 
-        dl = device_list['list']
+# USER
+@app.route('/user', methods=['GET'])
+def userGet():
+    return 'forbidden', 403
 
-        dl.append(device_data)
+@app.route('/user', methods=['POST'])
+def userPost():
+    return 'forbidden', 403
 
-        device_list['list'] = dl
+@app.route('/user', methods=['PUT'])
+def userPut():
+    return 'forbidden', 403
 
-        print(device_list)
+@app.route('/user', methods=['DELETE'])
+def userDelete():
+    return 'forbidden', 403
+# end USER
 
-        return "updated device list"
 
-    if request.json['type'] == 'DEVICE_STATUS_UPDATE':
 
-        dv = request.json['data']
+# ---------------------------------------------------------------
 
-        dl = device_list['list']
 
-        for device in dl:
+# --MQTT message handling
 
-            if (device['id'] == dv['id']):
-
-                device['status'] = dv['status']
-
-                device_list[0] = device
-
-                mqtt.publish("ID" + str(device['id']), str(device['status']))
-
-        return "status update succesful"
+def runMessageHandler():
+    print("[MQTT]--Message handling thread started")
+    while True:
+        sleep(1)
+        v = mqtt.getMessage()
+        if v == -1:
+            continue
+        print("[MQTT]--Handling message:topic \"" + v["topic"] + "\", payload \"" + v["payload"] + "\"")
 
 # ------
+
 
 # --Separate thread functions
 def runFlask():
@@ -77,22 +85,18 @@ def runMqtt():
     mqtt.init(mqttSecret["host"], mqttSecret["port"], mqttSecret["username"], mqttSecret["password"])
     mqtt.client.loop_forever()
 
-def runMessageHandler():
-    print("[MQTT]--Message handling thread started")
-    while True:
-        sleep(1)
-        v = mqtt.getMessage()
-        if v == -1:
-            continue
-        print("[MQTT]--Handling message:topic \"" + v["topic"] + "\", payload \"" + v["payload"] + "\"")
 # ------
+
 
 # --Main functions
 def main():
+    logzero.logfile('logs/latest.log')
     mqttThread = Thread(target = runMqtt)
     mqttThread.start()
     msgHandlerThread = Thread(target = runMessageHandler)
     msgHandlerThread.start()
+
+    logger.info("working")
 
     runFlask()
 
