@@ -24,30 +24,43 @@ logger = logging.Logger()
 
 database = db.Database()
 
+tokens = TokenUtility()
+
 # --end variables
 
 
 # --Flask routing------------------------------------------------
 
-# LOGIN
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    data = request.get_json(silent=True)
-    if data == None:
-        abort(400)
-    username = data['username']
-    pass
-    return
-
 # USER
 
 @app.route('/user', methods=['GET'])
 def userGet():
-    return 'forbidden', 403
+    data = request.get_json(silent=True)
+    if data == None:
+        abort(400)
+    email = data['email']
+    password = data['password']
+
+    if (database.checkUser(email, password)):
+        return database.getToken(email)
+    else:
+        return "forbidden"
+        abort(403)
+
 
 @app.route('/user', methods=['POST'])
 def userPost():
-    return 'forbidden', 403
+    data = request.get_json(silent=True)
+    if data == None:
+        abort(400)
+    email = data['email']
+    password = data['password']
+
+    if (database.createUser(email, password)):
+        return tokens.createToken(email)
+    else:
+        return "conflict"
+        abort(409)
 
 @app.route('/user', methods=['PUT'])
 def userPut():
@@ -138,7 +151,8 @@ def runMqtt():
 
 # --Main functions
 def main():
-    print(database.show_db())
+
+    tokens.set_signature(secret.retrieve('signature')[signature])
 
     mqttThread = Thread(target = runMqtt)
     mqttThread.start()

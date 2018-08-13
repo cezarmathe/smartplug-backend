@@ -1,5 +1,10 @@
 import paho.mqtt.client as mqtt
 
+import logging as logging
+
+
+logger = logging.Logger()
+
 # A buffer class for keeping incoming messages
 class MessageBuffer():
     def __init__(self):
@@ -38,14 +43,14 @@ client = mqtt.Client("server", False)
 # The callback for when the client receives a CONNACK response from the server
 def onConnect(client, userdata, flags, rc):
     # Printing the result code for debugging
-    print("[MQTT]--Connected with result code " + str(rc))
+    logger.logMQTT("connected with result code " + str(rc))
 
     # Subscribing to all the topics in on_connect in order
     # to resubscribe if the connection is lost
     for i in topics:
         client.subscribe(i, 0)
 
-    print("[MQTT]--Succefsully subscribed to all the topics")
+    logger.logMQTT("succefsully subscribed to all the topics")
     return
 
 # The callback used for interpreting received messages
@@ -56,7 +61,7 @@ def onMessage(client, userdata, msg):
     payload = payload[2 : len(payload) - 1]
     messageBuffer.addMessage(topic, payload)
 
-    print("[MQTT]--Recevied message:" + topic + " - payload:" + payload)
+    logger.logMQTT("recevied message:" + topic + " - payload:" + payload)
     return
 
 # Initialize MQTT
@@ -69,14 +74,14 @@ def init(host, port, username, password):
     # Connecting
     client.connect(host, port, 60)
 
-    print("[MQTT]--Initialized")
+    logger.logMQTT("initialized")
     return
 
 # Simple publish function
 def publish(topic, payload):
     client.publish(topic, payload)
 
-    print("[MQTT]--Published a message to the topic(\"" + topic + "\") with the payload(\"" + payload + "\")")
+    logger.logMQTT("published a message to the topic(\"" + topic + "\") with the payload(\"" + payload + "\")")
     return
 
 # Retrieve a message from the buffer
