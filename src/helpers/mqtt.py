@@ -1,9 +1,9 @@
 import paho.mqtt.client as mqtt
 
-import logging as logging
+import helpers.logging as log
 
 
-logger = logging.Logger()
+logger = log.Logger()
 
 # A buffer class for keeping incoming messages
 class MessageBuffer():
