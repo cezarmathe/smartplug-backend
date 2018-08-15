@@ -7,6 +7,7 @@ import helpers.secret_parser as secret
 import helpers.logging as logging
 import db.db_helper as db
 import helpers.token as tk
+import helpers.serializer as serializer
 
 from threading import Thread
 from time import sleep
@@ -37,29 +38,8 @@ database = db.Database(tokens, logger)
 
 @app.route('/user', methods=['GET'])
 def userGet():
-    logger.logRouting("/user", "GET", "received the request")
+    return "forbidden", 403
 
-    data = request.get_json(silent=True)
-    logger.logRouting("/user", "GET", "extracted JSON")
-
-    if data == None:
-        logger.logRouting("/user", "GET", "no payload")
-        abort(400)
-
-    logger.logRouting("/user", "GET", "payload exists")
-
-    email = data['email']
-    password = data['password']
-    logger.logRouting("/user", "GET", "payload conforms to standards")
-
-    user = database.checkUser(email, password)
-
-    if (user != False):
-        logger.logRouting("/user", "GET", "valid credentials")
-        return user, 200
-    else:
-        logger.logRouting("/user", "GET", "invalid credentials")
-        return "forbidden", 403
 
 
 @app.route('/user', methods=['POST'])
@@ -79,19 +59,41 @@ def userPost():
     password = data['password']
     logger.logRouting("/user", "POST", "payload conforms to standards")
 
-    result = database.checkUser(email, password)
+    user = database.checkUser(email, password, False)
 
-    if (result == False):
-        logger.logRouting("/user", "POST", "user already exists")
-        return "conflict", 409
+    if (user != False):
+        logger.logRouting("/user", "POST", "valid credentials")
+        return user[5], 200
     else:
-        logger.logRouting("/user", "POST", "user creation was succesful")
-        return database.createUser(email, password)
+        logger.logRouting("/user", "POST", "invalid credentials")
+        return "forbidden", 403
 
 
 @app.route('/user', methods=['PUT'])
 def userPut():
-    return 'forbidden', 403
+    logger.logRouting("/user", "PUT", "received the request")
+
+    data = request.get_json(silent=True)
+    logger.logRouting("/user", "PUT", "extracted JSON")
+
+    if data == None:
+        logger.logRouting("/user", "PUT", "no payload")
+        abort(400)
+
+    logger.logRouting("/user", "PUT", "payload exists")
+
+    email = data['email']
+    password = data['password']
+    logger.logRouting("/user", "PUT", "payload conforms to standards")
+
+    result = database.checkUser(email, password, True)
+
+    if (result == False):
+        logger.logRouting("/user", "PUT", "user already exists")
+        return "conflict", 409
+    else:
+        logger.logRouting("/user", "PUT", "user creation was succesful")
+        return database.createUser(email, password)
 
 @app.route('/user', methods=['DELETE'])
 def userDelete():
@@ -103,17 +105,15 @@ def userDelete():
 # DEVICE
 
 @app.route('/device', methods=['GET'])
-def deficeGet():
+def deviceGet():
     token = tokens.extractToken(request)
     user = database.getUserFromToken(token)
-
     if (user == None):
         return 'forbidden', 403
-
-    device_list = database.getDeviceList(user[0])
+    device_list = serializer.serializeDeviceList(database.getDeviceList(user[0]))
 
     # convert to json
-    return device_list, 200
+    return json.dumps(device_list['list']), 200
 
 @app.route('/device', methods=['POST'])
 def devicePost():
@@ -149,7 +149,7 @@ def devicePut():
     # update device --------------------------------------
 
 @app.route('/device/status', methods=['PUT'])
-def devicePut():
+def devicePutStatus():
     token = tokens.extractToken(request)
     user = database.getUserFromToken(token)
 

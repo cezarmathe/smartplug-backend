@@ -1,0 +1,1 @@
+curl --header "Content-Type: application/json" --header "Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im5hbWVAZXhhbXBsZS5jb20ifQ.NhHCLiqJJjoZYyTTlQaPYEwExZt0-8oFHkywDI6cQIw" --request "GET"  http://10.0.2.182:1234/device

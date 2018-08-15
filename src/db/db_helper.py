@@ -25,6 +25,7 @@ class Database():
         self.logger.logTag("disconnected from database")
 
 
+    # USER
     def createUser(self, email, password):
         self.connect()
 
@@ -42,21 +43,47 @@ class Database():
         return tk
 
 
-    def checkUser(self, email, password):
+    def checkUser(self, email, password, conflict):
         self.connect()
 
         with self.connection.cursor() as cursor:
-            sql = "SELECT token FROM user WHERE email=\'%s\' AND password=\'%s\'"
-            cursor.execute(sql % (email,password))
+            sql = "SELECT * FROM user WHERE email=\'%s\'"
+            cursor.execute(sql % email)
             self.logger.logTag("executed sql script")
 
-            result = int(cursor.rowcount)
+            result1 = int(cursor.rowcount)
+            # print("result1=" + str(cursor.rowcount))
+
+        if (conflict):
+            if (result1 != 0):
+                return False
+        else:
+            if (result1 == 0):
+                return False
+
+        with self.connection.cursor() as cursor:
+            sql = "SELECT * FROM user WHERE email=\'%s\' AND password=\'%s\'"
+            cursor.execute(sql % (email, password))
+            self.logger.logTag("executed sql script")
+
+            result2 = int(cursor.rowcount)
+            # print("result2=" + str(cursor.rowcount))
+
+            user = cursor.fetchone()
 
         self.disconnect()
 
-        if (result != 0):
-            return False
-        return True
+        if (conflict):
+            if (result2 != 0):
+                return False
+        else:
+            if (result2 == 0):
+                return False
+
+        if (conflict):
+            return True
+        return user
+
 
     def getUserFromToken(self, token):
         self.connect()
@@ -72,12 +99,14 @@ class Database():
                 result = None
 
         return result
+    # END USER
 
+    # DEVICE
     def getDeviceList(self, id):
         self.connect()
 
         with self.connection.cursor() as cursor:
-            sql = "SELECT * FROM device WHERE user_id=\'%i\'"
+            sql = "SELECT id,name,is_online,status FROM device WHERE user_id=\'%i\'"
             cursor.execute(sql % id)
             return cursor.fetchall()
 
@@ -106,5 +135,7 @@ class Database():
     def updateDeviceStatus(self, device_id, status):
         # todo
         return
+
+    # END DEVICE
 
     # todo other functions

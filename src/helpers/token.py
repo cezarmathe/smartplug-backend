@@ -21,5 +21,7 @@ class TokenUtility():
         return jwt.decode(token, self.signature, algorithm='HS256')
 
     def extractToken(self, request):
+        if (request.headers.get('Authorization') == None):
+            return None
         self.logger.logTag("extracted a token from a request header")
         return request.headers.get('Authorization')[7:]
