@@ -38,8 +38,24 @@ database = db.Database(tokens, logger)
 
 @app.route('/user', methods=['GET'])
 def userGet():
-    return "forbidden", 403
+    logger.logRouting("/user", "GET", "received the request")
 
+    email = request.args.get('email')
+    password = request.args.get('password')
+
+    if (email == None or password == None):
+        return "bad request", 400
+
+    logger.logRouting("/user", "GET", "payload conforms to standards")
+
+    user = database.checkUser(email, password, False)
+
+    if (user != False):
+        logger.logRouting("/user", "GET", "valid credentials")
+        return user[5], 200
+    else:
+        logger.logRouting("/user", "GET", "invalid credentials")
+        return "invalid", 409
 
 
 @app.route('/user', methods=['POST'])
@@ -59,41 +75,19 @@ def userPost():
     password = data['password']
     logger.logRouting("/user", "POST", "payload conforms to standards")
 
-    user = database.checkUser(email, password, False)
+    result = database.checkUser(email, password, True)
 
-    if (user != False):
-        logger.logRouting("/user", "POST", "valid credentials")
-        return user[5], 200
+    if (result == False):
+        logger.logRouting("/user", "POST", "user already exists")
+        return "conflict", 409
     else:
-        logger.logRouting("/user", "POST", "invalid credentials")
-        return "forbidden", 403
+        logger.logRouting("/user", "POST", "user creation was succesful")
+        return database.createUser(email, password)
 
 
 @app.route('/user', methods=['PUT'])
 def userPut():
-    logger.logRouting("/user", "PUT", "received the request")
-
-    data = request.get_json(silent=True)
-    logger.logRouting("/user", "PUT", "extracted JSON")
-
-    if data == None:
-        logger.logRouting("/user", "PUT", "no payload")
-        abort(400)
-
-    logger.logRouting("/user", "PUT", "payload exists")
-
-    email = data['email']
-    password = data['password']
-    logger.logRouting("/user", "PUT", "payload conforms to standards")
-
-    result = database.checkUser(email, password, True)
-
-    if (result == False):
-        logger.logRouting("/user", "PUT", "user already exists")
-        return "conflict", 409
-    else:
-        logger.logRouting("/user", "PUT", "user creation was succesful")
-        return database.createUser(email, password)
+    return "forbidden", 403
 
 @app.route('/user', methods=['DELETE'])
 def userDelete():
@@ -110,15 +104,16 @@ def deviceGet():
     user = database.getUserFromToken(token)
     if (user == None):
         return 'forbidden', 403
-    device_list = serializer.serializeDeviceList(database.getDeviceList(user[0]))
+    device_list = serializer.serializeDeviceList(database.getDeviceList(user[0][0]))
 
     # convert to json
     return json.dumps(device_list['list']), 200
 
+
 @app.route('/device', methods=['POST'])
 def devicePost():
     token = tokens.extractToken(request)
-    user_id = database.getUserFromToken(token)[0]
+    user_id = database.getUserFromToken(token)[0][0]
 
     data = request.get_json(silent=True)
     if (data == None):
@@ -128,43 +123,34 @@ def devicePost():
 
     id = database.createDevice(name, user_id)
 
-    return id, 200
+    return str(id[0]), 200
+
 
 @app.route('/device', methods=['PUT'])
-def devicePut():
-    token = tokens.extractToken(request)
-    user = database.getUserFromToken(token)
-
-    data = request.get_json(silent=True)
-    if (data == None):
-        return 'bad request', 400
-
-    if (user == None):
-        return 'forbidden', 403
-
-    user_id = user[0]
-    device_id = data['id']
-    device_name = data['name']
-
-    # update device --------------------------------------
-
-@app.route('/device/status', methods=['PUT'])
 def devicePutStatus():
+    logger.logRouting("/device", "PUT", "update device status")
     token = tokens.extractToken(request)
     user = database.getUserFromToken(token)
 
-    data = request.get_json(silent=True)
-    if (data == None):
+    id = request.args.get('id')
+    status = request.args.get('status')
+
+    if (status == 'true'):
+        status = 1
+    elif (status == 'false'):
+        status = 0
+
+    if (status == None or id == None):
         return 'bad request', 400
 
     if (user == None):
         return 'forbidden', 403
 
-    user_id = user[0]
-    device_id = data['id']
-    device_status = data['status']
+    user_id = user[0][0]
 
-    # update device status ---------------------------------
+    database.updateDeviceStatus(id, status)
+
+    return "succes", 200
 
 @app.route('/device', methods=['DELETE'])
 def deviceDelete():

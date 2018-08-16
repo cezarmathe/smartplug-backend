@@ -90,11 +90,11 @@ class Database():
 
         with self.connection.cursor() as cursor:
             sql = "SELECT * FROM user WHERE token=\'%s\'"
-            cursor.execute(sql % token)
+            cursor.execute(sql % (token))
             self.logger.logTag("executed sql script")
 
             if (cursor.rowcount != 0):
-                result = cursor.fetchone()
+                result = cursor.fetchall()
             else:
                 result = None
 
@@ -104,9 +104,8 @@ class Database():
     # DEVICE
     def getDeviceList(self, id):
         self.connect()
-
         with self.connection.cursor() as cursor:
-            sql = "SELECT id,name,is_online,status FROM device WHERE user_id=\'%i\'"
+            sql = "SELECT id,name,is_online,status FROM device WHERE user_id=\'%s\'"
             cursor.execute(sql % id)
             return cursor.fetchall()
 
@@ -114,7 +113,7 @@ class Database():
         self.connect()
 
         with self.connection.cursor() as cursor:
-            sql = "INSERT INTO device(`name`, `is_online`, `status`, `user_id`) VALUES (%s, %i, %i, %i)"
+            sql = "INSERT INTO `device` (`name`,`is_online`,`status`,`user_id`) VALUES (\'%s\', \'%i\', \'%i\', \'%s\')"
             cursor.execute(sql % (name, 0, 0, user_id))
 
             self.connection.commit()
@@ -122,17 +121,33 @@ class Database():
             sql = "SELECT LAST_INSERT_ID()"
             cursor.execute(sql)
 
+            self.disconnect()
+
             return cursor.fetchone()
+
+
+    def updateDeviceStatus(self, id, status):
+        self.logger.logTag("update device status")
+
+        self.connect()
+
+        self.logger.logTag("id:" + str(id) + "/status:" + str(status))
+
+        with self.connection.cursor() as cursor:
+            sql = "UPDATE `device` SET status=\'%i\' WHERE id=\'%i\'"
+            cursor.execute(sql % (int(status), int(id)))
+
+            self.connection.commit()
+
+        self.disconnect()
+
+
 
     def checkDeviceOwnership(self, device_id, user_id):
         # todo
         return
 
     def checkDevicePermission(self, device_id, user_id):
-        # todo
-        return
-
-    def updateDeviceStatus(self, device_id, status):
         # todo
         return
 
