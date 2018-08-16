@@ -150,6 +150,8 @@ def devicePutStatus():
 
     database.updateDeviceStatus(id, status)
 
+    mqtt.publish(str(id), str(status))
+
     return "succes", 200
 
 @app.route('/device', methods=['DELETE'])
