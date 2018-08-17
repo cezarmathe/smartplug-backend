@@ -116,14 +116,20 @@ def devicePost():
     user_id = database.getUserFromToken(token)[0][0]
 
     data = request.get_json(silent=True)
-    if (data == None):
+    args = request.args
+
+    if (data == None and args == None):
         return 'bad request', 400
 
-    name = data['name']
+    elif(data == None):
+        print(args.get('id') + "-" + args.get('user_id'))
+        return "device permissions", 200
+    else:
+        name = data['name']
 
-    id = database.createDevice(name, user_id)
+        id = database.createDevice(name, user_id)
 
-    return str(id[0]), 200
+        return str(id[0]), 200
 
 
 @app.route('/device', methods=['PUT'])
@@ -197,6 +203,15 @@ def runMessageHandler():
             continue
         # print("[MQTT]--Handling message:topic \"" + v["topic"] + "\", payload \"" + v["payload"] + "\"")
         logger.logMQTTMsg("received message:topic \"" + v["topic"] + "\", payload \"" + v["payload"] + "\"")
+
+        if (v["topic"] == "id"):
+            email = v["payload"]
+            user = database.checkUserEmail(email)[0][0]
+
+            dev_final_id = database.createDevice("temp", user)
+            
+            mqtt.publish("id", str(dev_final_id))
+
 
 # ------
 

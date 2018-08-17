@@ -85,6 +85,22 @@ class Database():
         return user
 
 
+    def checkUserEmail(self, email):
+        self.connect()
+
+        with self.connection.cursor() as cursor:
+            sql = "SELECT * FROM user WHERE email=\'%s\'"
+            cursor.execute(sql % (email))
+            self.logger.logTag("executed sql script")
+
+            if (cursor.rowcount != 0):
+                result = cursor.fetchall()
+            else:
+                result = None
+
+        return result
+
+
     def getUserFromToken(self, token):
         self.connect()
 
@@ -131,7 +147,7 @@ class Database():
 
         self.connect()
 
-        self.logger.logTag("id:" + str(id) + "/status:" + str(status))
+        # self.logger.logTag("id:" + str(id) + "/status:" + str(status))
 
         with self.connection.cursor() as cursor:
             sql = "UPDATE `device` SET status=\'%i\' WHERE id=\'%i\'"
@@ -149,6 +165,17 @@ class Database():
 
     def checkDevicePermission(self, device_id, user_id):
         # todo
+        return
+
+    def addDeviceUserPair(self, device_id, user_id):
+        self.connect()
+
+        with self.connection.cursor() as cursor:
+            sql = "INSERT INTO `user_has_device` (`user_id`,`device_id`) VALUES (\'%s\',\'%s\')"
+            cursor.execute(sql % (user_id, device_id))
+
+            self.connection.commit()
+        self.disconnect()
         return
 
     # END DEVICE
