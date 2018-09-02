@@ -129,7 +129,28 @@ def devicePost():
 
         id = database.createDevice(name, user_id)
 
-        return str(id[0]), 200
+        return str(id), 200
+
+
+@app.route('/device/adduser', methods=['POST'])
+def deviceAddUser():
+    token = tokens.extractToken(request)
+    user = database.getUserFromToken(token)[0][0]
+
+    args = request.args
+
+    if (args == None):
+        abort(400)
+
+    device_id = args.get("device_id")
+    user_id = args.get("user_id")
+    if (database.checkDeviceOwnership(device_id, user) == False):
+        abort(409)
+
+    database.addDeviceUserPair(device_id, user_id)
+
+    return "added", 200
+
 
 
 @app.route('/device', methods=['PUT'])
@@ -209,7 +230,7 @@ def runMessageHandler():
             user = database.checkUserEmail(email)[0][0]
 
             dev_final_id = database.createDevice("temp", user)
-            
+
             mqtt.publish("id", str(dev_final_id))
 
 

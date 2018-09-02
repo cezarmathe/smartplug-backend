@@ -121,8 +121,20 @@ class Database():
     def getDeviceList(self, id):
         self.connect()
         with self.connection.cursor() as cursor:
-            sql = "SELECT id,name,is_online,status FROM device WHERE user_id=\'%s\'"
+            sql = "SELECT device_id FROM user_has_device WHERE user_id=\'%s\'"
+            print(id)
             cursor.execute(sql % id)
+            dev_id_list = cursor.fetchall()
+            # print(dev_id_list)
+
+            sql = "SELECT id,is_online,name,status FROM device WHERE `id` IN ("
+            for i in dev_id_list:
+                # print(str(i))
+                sql += str(i[0]) + ", "
+            sql += "-1)"
+            print(sql)
+            cursor.execute(sql)
+            # print(sql)
             return cursor.fetchall()
 
     def createDevice(self, name, user_id):
@@ -139,7 +151,11 @@ class Database():
 
             self.disconnect()
 
-            return cursor.fetchone()
+            dev_id = cursor.fetchone()
+
+            self.addDeviceUserPair(dev_id[0], user_id)
+
+            return dev_id[0]
 
 
     def updateDeviceStatus(self, id, status):
@@ -160,8 +176,18 @@ class Database():
 
 
     def checkDeviceOwnership(self, device_id, user_id):
-        # todo
-        return
+        self.connect()
+
+        with self.connection.cursor() as cursor:
+            sql = "SELECT * FROM device WHERE user_id=\'%s\' AND id=\'%s\'"
+            cursor.execute(sql % (user_id, device_id))
+            self.logger.logTag("executed sql script")
+
+            if (cursor.rowcount != 0):
+                return True
+            else:
+                return False
+
 
     def checkDevicePermission(self, device_id, user_id):
         # todo
