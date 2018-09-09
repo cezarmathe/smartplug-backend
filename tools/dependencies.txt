@@ -1,4 +1,5 @@
 flask
 paho-mqtt
-pyfcm
 pymysql
+logzero
+pyjwt
