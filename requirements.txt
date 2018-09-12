@@ -1,0 +1,5 @@
+flask
+paho-mqtt
+pymysql
+logzero
+pyjwt
