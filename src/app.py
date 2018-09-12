@@ -247,7 +247,7 @@ def runFlask():
 def runMqtt():
     logger.logMQTT("thread started")
     # mqttSecret = secret.retrieve('mqtt')
-    mqtt.init(os.environ['MQTT_HOST'], os.environ['MQTT_PORT'], os.environ['MQTT_PASS'], os.environ['MQTT_PASS'])
+    mqtt.init(os.environ['MQTT_HOST'], int(os.environ['MQTT_PORT']), os.environ['MQTT_PASS'], os.environ['MQTT_PASS'])
     mqtt.client.loop_forever()
 
 # ------
