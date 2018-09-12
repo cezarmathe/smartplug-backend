@@ -8,8 +8,8 @@ import os
 class Database():
 
     def __init__(self, tokens, logger):
-        # with open('constants/database.secret.json', 'r') as f:
-            # self.creds = json.loads(f.read())
+        with open('constants/database.secret.json', 'r') as f:
+            self.creds = json.loads(f.read())
         self.tokens = tokens
         self.tokens.logger.setTag("TokenUtility")
         self.logger = logger
@@ -17,7 +17,7 @@ class Database():
 
 
     def connect(self):
-        self.connection = pymysql.connect(os.environ['DB_HOST'], os.environ['DB_USER'], os.environ['DB_PASS'], os.environ['DB_NAME'])
+        self.connection = pymysql.connect(self.creds['host'], self.creds['username'], self.creds['password'], self.creds['db_name'])
         self.logger.logTag("connected to database")
 
 
