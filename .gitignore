@@ -110,3 +110,4 @@ venv.bak/
 # log files
 
 src/logs/*
+!src/logs/.gitkeep
