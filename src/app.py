@@ -242,7 +242,7 @@ def runMessageHandler():
 def runFlask():
     logger.logFlask("thread started")
     # flaskSecret = secret.retrieve('flask')
-    app.run(os.environ['FLASK_HOST'], port=os.environ['FLASK_PORT'])
+    app.run(os.environ['FLASK_HOST'])
 
 def runMqtt():
     logger.logMQTT("thread started")
