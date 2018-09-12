@@ -12,6 +12,7 @@ import helpers.serializer as serializer
 from threading import Thread
 from time import sleep
 import secrets
+import os
 # import sys
 
 import json
@@ -240,13 +241,13 @@ def runMessageHandler():
 # --Separate thread functions
 def runFlask():
     logger.logFlask("thread started")
-    flaskSecret = secret.retrieve('flask')
-    app.run(host=flaskSecret["host"], port=flaskSecret["port"])
+    # flaskSecret = secret.retrieve('flask')
+    app.run(os.environ['FLASK_HOST'], port=os.environ['FLASK_PORT'])
 
 def runMqtt():
     logger.logMQTT("thread started")
-    mqttSecret = secret.retrieve('mqtt')
-    mqtt.init(mqttSecret["host"], mqttSecret["port"], mqttSecret["username"], mqttSecret["password"])
+    # mqttSecret = secret.retrieve('mqtt')
+    mqtt.init(os.environ['MQTT_HORT'], os.environ['MQTT_PORT'], os.environ['MQTT_PASS'], os.environ['MQTT_PASS'])
     mqtt.client.loop_forever()
 
 # ------
@@ -255,7 +256,7 @@ def runMqtt():
 # --Main functions
 def main():
 
-    tokens.set_signature(secret.retrieve('signature')['signature'])
+    tokens.set_signature(os.environ['SIGNATURE'])
 
     mqttThread = Thread(target = runMqtt)
     mqttThread.start()
