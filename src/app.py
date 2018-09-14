@@ -225,7 +225,7 @@ def runMessageHandler():
         # print("[MQTT]--Handling message:topic \"" + v["topic"] + "\", payload \"" + v["payload"] + "\"")
         logger.logMQTTMsg("received message:topic \"" + v["topic"] + "\", payload \"" + v["payload"] + "\"")
 
-        if (v["topic"] == "id"):
+        if (v["topic"] == "GET_FINAL_ID"):
             email = v["payload"]
             user = database.checkUserEmail(email)[0][0]
 
