@@ -10,8 +10,8 @@ def serializeDeviceList(list):
         # print(i)
         device_data = {}
         device_data['id'] = i[0]
-        device_data['name'] = i[1]
-        if (i[2] == 0):
+        device_data['name'] = i[2]
+        if (i[1] == 0):
             device_data['isOnline'] = False
         else:
             device_data['isOnline'] = True
