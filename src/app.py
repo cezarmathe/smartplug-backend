@@ -245,6 +245,9 @@ def runFlask():
 
 # ------
 
+def runMqtt():
+    mqtt.client.loop_forever()
+
 
 # --Main functions
 def main():
@@ -255,7 +258,7 @@ def main():
     mqttSecret = secret.retrieve('mqtt')
     mqtt.init(mqttSecret["host"], mqttSecret["port"], mqttSecret["username"], mqttSecret["password"])
 
-    mqttThread = Thread(target = mqtt.client.loop_forever)
+    mqttThread = Thread(target = runMqtt)
     mqttThread.start()
 
     msgHandlerThread = Thread(target = runMessageHandler)
