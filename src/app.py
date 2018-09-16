@@ -254,6 +254,10 @@ def main():
     logger.logMQTT("thread started")
     mqttSecret = secret.retrieve('mqtt')
     mqtt.init(mqttSecret["host"], mqttSecret["port"], mqttSecret["username"], mqttSecret["password"])
+
+    mqttThread = Thread(target = mqtt.client.loop_forever)
+    mqttThread.start()
+
     mqtt.client.loop_forever()
 
     msgHandlerThread = Thread(target = runMessageHandler)
