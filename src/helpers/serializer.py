@@ -21,4 +21,5 @@ def serializeDeviceList(list):
             device_data['status'] = True
         dl.append(device_data)
         device_list['list'] = dl
+    print(dl)
     return device_list
