@@ -241,9 +241,7 @@ def runMessageHandler():
 def runFlask():
     logger.logFlask("thread started")
     flaskSecret = secret.retrieve('flask')
-    app.run(host=flaskSecret["host"], port=flaskSecret["port"])
-
-
+    app.run(host=flaskSecret["host"])
 
 # ------
 
