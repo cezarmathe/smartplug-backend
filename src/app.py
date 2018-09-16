@@ -258,8 +258,6 @@ def main():
     mqttThread = Thread(target = mqtt.client.loop_forever)
     mqttThread.start()
 
-    mqtt.client.loop_forever()
-
     msgHandlerThread = Thread(target = runMessageHandler)
     msgHandlerThread.start()
 
